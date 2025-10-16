@@ -33,6 +33,8 @@ Finland clusters with countries like:
 
 > Argentina, Brazil, Denmark, Estonia, India, Singapore, Norway, Portugal, Ukraine, and others.
 
+![visual4](./visual/4.png)
+
 ---
 
 ## 🧠 About the Project
