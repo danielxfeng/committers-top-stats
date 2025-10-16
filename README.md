@@ -13,16 +13,16 @@ I built a small tool to explore it further.
 
 💻 **Average total contributions** across all countries: `1301`  
 → Finland ranks **27th** with `1963`
-[!visual1](./visual/1.png)
+![visual1](./visual/1.png)
 
 
 🌍 **Share of public project commits** averages `35%`  
 → Finland ranks **25th** with `38%`
-[!visual2](./visual/2.png)
+![visual2](./visual/2.png)
 
 🧩 **Commits as a percentage of total contributions** average `82%`  
 → Finland drops to **126th**, at `75%` — suggesting Finnish developers contribute relatively more through issues, PRs, and discussions than raw commits.
-[!visual3](./visual/3.png)
+![visual3](./visual/3.png)
 
 ---
 
