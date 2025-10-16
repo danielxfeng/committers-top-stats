@@ -35,6 +35,8 @@ Finland clusters with countries like:
 
 ![visual4](./visual/4.png)
 
+🔍 Explore the clusters interactively: [danielslab.dev/clusters_map.html](https://danielslab.dev/clusters_map.html)
+
 ---
 
 ## 🧠 About the Project
