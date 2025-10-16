@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
@@ -34,6 +35,10 @@ class MainPage(TopCommitters):
 
         for a in links:
             country_name = a.text.strip()
+
+            if "worldwide" in country_name.lower():
+                continue  # Skip worldwide entry
+
             href = a.get("href")
             if isinstance(href, str):
                 country_url = urljoin(self.base_url, href)
@@ -48,7 +53,7 @@ class MainPage(TopCommitters):
 
 
 class CountryPage(TopCommitters):
-    """Fetches committer rankings for a specific country."""
+    """Fetches committer contribution counts for a specific country."""
 
     def __init__(self, name: str, url: str) -> None:
         super().__init__()
@@ -61,7 +66,7 @@ class CountryPage(TopCommitters):
         self._private_ranks: dict[str, int] = {}
 
     def fetch_committers(self) -> None:
-        """Fetch and parse all ranking types (commit, public, private)."""
+        """Fetch and parse all contribution types (commit, public, private)."""
         self.__process_page(self.url, self._commit_ranks, need_further_url=True)
         if self.public_url:
             self.__process_page(self.public_url, self._public_ranks)
@@ -70,7 +75,7 @@ class CountryPage(TopCommitters):
 
     @property
     def ranks(self) -> dict[str, dict[str, int]]:
-        """Get all ranking dictionaries by type."""
+        """Get all contribution dictionaries by type."""
         return {
             "commit": self._commit_ranks,
             "public": self._public_ranks,
@@ -80,9 +85,9 @@ class CountryPage(TopCommitters):
     def __process_page(
         self, url: str, rank_dict: dict[str, int], need_further_url: bool = False
     ) -> None:
-        """Parse user rankings from a page and extract public/private URLs."""
+        """Parse user contributions from a page and extract public/private URLs."""
         html = self.fetch_and_parse(url)
-        rows = html.select(".user-list tbody tr")
+        rows = html.select(".users-list tbody tr")
 
         for row in rows:
             id = row.get("id")
@@ -91,8 +96,8 @@ class CountryPage(TopCommitters):
             cols = row.find_all("td")
             if len(cols) < 3:
                 raise ValueError("Unexpected table structure")
-            rank = cols[2].text.strip()
-            rank_dict[id] = int(rank)
+            contribs = cols[2].text.strip()
+            rank_dict[id] = int(contribs)
 
         if need_further_url:
             urls = html.select(".mode-selector a")
@@ -107,28 +112,42 @@ class CountryPage(TopCommitters):
                     self.private_url = full_url
 
 
-def fetcher() -> dict[str, dict[str, dict[str, int]]]:
-    """Fetch all country rankings from committers.top.
-
-    Returns:
-        Nested dict: {country: {rank_type: {user_id: rank}}}
-        where rank_type is 'commit', 'public', or 'private'.
-    """
-    data: dict[str, dict[str, dict[str, int]]] = {}
-
+def fetcher(filename: str | None = None) -> None:
+    """Fetch all country contributions from committers.top and export to CSV."""
     main_page = MainPage()
+    print("Fetching country list...")
     main_page.fetch_countries()
+    print(f"Found {len(main_page.countries)} countries.")
 
+    # Flatten nested data structure for pandas
+    rows = []
     for country_name, country_url in main_page.countries.items():
         country_page = CountryPage(country_name, country_url)
+        print(f"Processing {country_name}...")
         country_page.fetch_committers()
-        data[country_name] = country_page.ranks
+        print(f"Finished processing {country_name}.")
 
-    return data
+        for rank_type, users in country_page.ranks.items():
+            for user_id, contribs in users.items():
+                rows.append(
+                    {
+                        "country": country_name,
+                        "rank_type": rank_type,
+                        "user_id": user_id,
+                        "contribs": contribs,
+                    }
+                )
+
+    print(f"Writing data to {filename or 'data.csv'}...")
+    if not filename:
+        filename = "data.csv"
+    df = pd.DataFrame(rows)
+    df.to_csv(filename, index=False)
+    print("Data written successfully.")
 
 
 if __name__ == "__main__":
-    print("This module provides the fetcher() function to get committer rankings.")
+    fetcher()
 
 
 __all__ = ["fetcher"]
