@@ -105,3 +105,30 @@ class CountryPage(TopCommitters):
                     self.public_url = full_url
                 elif "private" in full_url:
                     self.private_url = full_url
+
+
+def fetcher() -> dict[str, dict[str, dict[str, int]]]:
+    """Fetch all country rankings from committers.top.
+
+    Returns:
+        Nested dict: {country: {rank_type: {user_id: rank}}}
+        where rank_type is 'commit', 'public', or 'private'.
+    """
+    data: dict[str, dict[str, dict[str, int]]] = {}
+
+    main_page = MainPage()
+    main_page.fetch_countries()
+
+    for country_name, country_url in main_page.countries.items():
+        country_page = CountryPage(country_name, country_url)
+        country_page.fetch_committers()
+        data[country_name] = country_page.ranks
+
+    return data
+
+
+if __name__ == "__main__":
+    print("This module provides the fetcher() function to get committer rankings.")
+
+
+__all__ = ["fetcher"]
